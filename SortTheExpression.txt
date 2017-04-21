@@ -1,0 +1,116 @@
+import java.util.Scanner;
+
+public class SortExpr{
+
+	private Character[] operatorStack;
+	private int opTop = 0;
+	private Character[] numberStack;
+	private int numTop = 0;
+	Character[] exprStack;
+	private int expTop = 0;
+//(+3(*52)(-63))
+	public void addToTop(Character ch) {
+
+		if (expTop == 0) {
+			exprStack[expTop] = ch;
+			return;
+		}
+		for (int i = expTop - 1; i >= 0; i--) {
+			exprStack[i + 1] = exprStack[i];
+		}
+		exprStack[0] = ch;
+	}
+
+	public void evaluateString(String prefixedString) {
+		numberStack = new Character[prefixedString.length()];
+		operatorStack = new Character[prefixedString.length()];
+		for (int i = 0; i < prefixedString.length(); i++) {
+			if (prefixedString.charAt(i) == '(') {
+				numberStack[numTop] = prefixedString.charAt(i);
+				numTop++;
+			} else if (prefixedString.charAt(i) == ')') {
+				numberStack[numTop] = prefixedString.charAt(i);
+				numTop++;
+			} else if (prefixedString.charAt(i) == '+'
+					|| prefixedString.charAt(i) == '-'
+					|| prefixedString.charAt(i) == '*'
+					|| prefixedString.charAt(i) == '/'
+					|| prefixedString.charAt(i) == '%') {
+				operatorStack[opTop] = prefixedString.charAt(i);
+				opTop++;
+			} else {
+				numberStack[numTop] = prefixedString.charAt(i);
+				numTop++;
+			}
+		}
+
+		Character[] arr = formExprString(prefixedString);
+		System.out.println("\nOutput\n");
+		for (int i = 0; i < arr.length; i++){
+			if(exprStack[i]!=null)
+			System.out.print(exprStack[i]);
+		}
+	}
+
+	public Character[] formExprString(String prefixedString) {
+		exprStack = new Character[prefixedString.length() + opTop - 1];
+
+		Character op = operatorStack[opTop - 1];
+		opTop--;
+		int level = 0;
+		for (int i = numTop - 1; i >= 0; i--) {
+			if (numberStack[i] == ')' && i == numTop - 1) {
+				addToTop(numberStack[i]);
+				expTop++;
+			} else if (numberStack[i] == ')' && numberStack[i + 1] == ')') {
+				addToTop(numberStack[i]);
+				expTop++;
+				level++;
+			} else if ((i != numberStack.length - 1) && (numberStack[i] != ')')
+					&& (numberStack[i] != '(') && (numberStack[i + 1] == ')')) {
+				addToTop(numberStack[i]);
+				expTop++;
+			} else if ((i != numberStack.length - 1) && (numberStack[i] != '(')
+					&& (numberStack[i] != ')') && (numberStack[i + 1] != '(')
+					&& (numberStack[i + 1] != ')')) {
+				addToTop(op);
+				expTop++;
+				addToTop(numberStack[i]);
+				expTop++;
+
+			} else if (numberStack[i] == '(' && (numberStack[i + 1] != '(')
+					&& (numberStack[i + 1] != ')')) {
+				if (opTop != 0)
+					op = operatorStack[opTop - 1];
+				opTop--;
+				addToTop('(');
+				expTop++;
+				level--;
+			} else if (numberStack[i] == ')' && i != 0
+					&& (numberStack[i + 1] == '(')) {
+				addToTop(operatorStack[level]);
+				expTop++;
+				addToTop(')');
+				expTop++;
+				level++;
+			} else if (numberStack[i] != ')' && numberStack[i] != '('
+					&& (numberStack[i + 1] == '(')) {
+				addToTop(operatorStack[level]);
+				expTop++;
+				addToTop(numberStack[i]);
+				expTop++;
+			}
+		}
+		return exprStack;
+	}
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		System.out.println("Please enter the string");
+		@SuppressWarnings("resource")
+		Scanner sc = new Scanner(System.in);
+		new PrefixToInfix().evaluateString(sc.next());
+
+	}
+
+}
